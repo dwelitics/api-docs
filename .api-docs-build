@@ -1,0 +1,2 @@
+Written by tools/api-docs/build.ts. Its presence is what allows the next build to clear
+this directory. Delete the directory, not this file.

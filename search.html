@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Search — Dwelitics API documentation</title>
+<link rel="stylesheet" href="assets/site.css" />
+</head>
+<body>
+<header class="site-head">
+<a class="brand" href="index.html">Dwelitics API</a>
+<span class="badge badge-public">public</span>
+<nav><a href="index.html">Overview</a><a href="api/index.html">API reference</a><a href="search.html">Search</a></nav>
+</header>
+<main>
+<h1>Search</h1>
+<p class="lede">Substring match over every page in this build. Nothing is sent anywhere: the index is a file in this site and the filtering runs in your browser.</p>
+<input id="q" type="search" placeholder="route, method, page, word from a summary" autocomplete="off" disabled />
+<p id="count" class="note">Loading the index…</p>
+<ul id="results" class="links"></ul>
+<script src="assets/search.js"></script>
+</main>
+<footer class="site-foot">
+<p>Generated from the repository by <code>tools/api-docs/build.ts</code>.</p>
+</footer>
+</body>
+</html>

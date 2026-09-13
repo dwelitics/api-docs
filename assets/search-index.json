@@ -1,0 +1,14 @@
+[
+  {
+    "href": "api/app/health.html",
+    "title": "GET /api/health",
+    "summary": "The deployed build of app.dwelitics.com, plus whether its Metabase result cache is switched on.",
+    "keywords": "app /api/health app/health GET"
+  },
+  {
+    "href": "api/employee/health.html",
+    "title": "GET /api/health",
+    "summary": "The deployed build of employee.dwelitics.com.",
+    "keywords": "employee /api/health employee/health GET"
+  }
+]

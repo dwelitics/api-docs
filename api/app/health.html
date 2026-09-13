@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>GET /api/health — Dwelitics API documentation</title>
+<link rel="stylesheet" href="../../assets/site.css" />
+</head>
+<body>
+<header class="site-head">
+<a class="brand" href="../../index.html">Dwelitics API</a>
+<span class="badge badge-public">public</span>
+<nav><a href="../../index.html">Overview</a><a href="../../api/index.html">API reference</a><a href="../../search.html">Search</a></nav>
+</header>
+<main>
+<h1><span class="method">GET</span><span class="mono">/api/health</span></h1>
+<p class="lede">The deployed build of app.dwelitics.com, plus whether its Metabase result cache is switched on.</p>
+<dl>
+<dt>App</dt>
+<dd><code>app</code></dd>
+<dt>Authentication</dt>
+<dd>none — no session, no cookie, no header is read</dd>
+<dt>Documented since</dt>
+<dd><code>2026-09</code></dd>
+</dl>
+<h2>Request and response</h2>
+<table>
+<thead><tr>
+<th>Method</th>
+<th>Request body</th>
+<th>Success body</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><span class="method">GET</span></td>
+<td><span class="note">none</span></td>
+<td><code>{ status: &#39;ok&#39;; git_sha: string; app_version: string; human_version: string; env: string; build_time: string; vercel_deployment_id: string | null; question_cache: { configured: boolean; backend: &#39;upstash&#39;|&#39;none&#39;; missing: string[]; ttlPolicy: string }; ts: number }</code></td>
+</tr>
+</tbody>
+</table>
+<h2>Examples</h2>
+<h3>GET</h3>
+<pre>
+<code>curl -s https://app.dwelitics.com/api/health</code></pre>
+<p class="note">No credentials of any kind. This is the one route in this tree whose example needs no placeholder.</p>
+<h3>GET</h3>
+<pre>
+<code>curl -s https://app.dwelitics.com/api/health | python3 -c &#39;import json,sys; print(json.load(sys.stdin)[&quot;git_sha&quot;])&#39;</code></pre>
+<p class="note">What the promote gate does: read git_sha off the PUBLIC custom domain and compare it with the commit that triggered the deployment.</p>
+<hr />
+<h2>GET /api/health</h2>
+<h3>What it does</h3>
+<p>
+Returns the identity of the build currently answering on this host, and nothing
+else. <code>git_sha</code>, <code>app_version</code> (the <code>package.json</code> semver), <code>human_version</code>
+(CalVer <code>YYYY.MM.DD-&lt;sha7&gt;</code>) and <code>build_time</code> are baked at build time by
+<code>scripts/stamp-version.mjs</code>; <code>env</code> and <code>vercel_deployment_id</code> are read from the
+Vercel runtime environment; <code>ts</code> is <code>Date.now()</code> at the moment of the request.
+</p>
+<p>
+<code>question_cache</code> reports whether <code>KV_REST_API_URL</code> and <code>KV_REST_API_TOKEN</code> are
+present on THIS deployment, which decides whether Metabase reads are cached or
+go live to Snowflake on every page. It was off on every preview for months and
+nothing showed it, because a disabled cache renders exactly the same page as a
+working one — so the state is exposed here instead of being inferred from a log
+nobody reads.
+</p>
+<p>
+The response always carries <code>Cache-Control: no-store</code>, and the route is
+<code>dynamic = &#39;force-dynamic&#39;</code>. A cached health check answers for the build that
+used to be there.
+</p>
+<h3>What it does not do</h3>
+<ul>
+<li><strong>No database, no AI, no Metabase call.</strong> <code>question_cache</code> reports the
+configuration, it does not probe the cache. A 200 here says the function
+booted; it does not say Supabase is up. (A Supabase management API once
+reported <code>ACTIVE_HEALTHY</code> over a database answering nothing — DISC-288. This
+route makes the same class of claim about itself: build identity, not
+dependency health.)
+</li>
+<li><strong>No 4xx, no 5xx, no error branch.</strong> The handler has exactly one path. If you
+get a non-200 from this route, it came from the platform in front of it, not
+from this code.
+</li>
+<li>It does not tell you which SUPABASE the build is pointed at.
+</li>
+</ul>
+<h3>Gotchas</h3>
+<ul>
+<li><strong><code>git_sha</code> is <code>&#39;local&#39;</code> on a machine that did not run the stamp script.</strong> The
+committed placeholder <code>src/lib/version.generated.ts</code> exists so local
+type-checking works; a local <code>next dev</code> therefore reports <code>local</code>, and the
+promote verifier treats a <code>null</code>-ish sha as &quot;do not roll back&quot; rather than as
+a failure (<code>scripts/deploy/verify-deployment.ts</code>).
+</li>
+<li><strong>Verify on the PUBLIC custom domain, never on the <code>*.vercel.app</code> URL.</strong>
+Vercel SSO protection is <code>all_except_custom_domains</code>, so the staged URL
+answers 401 while <code>app.dwelitics.com</code> answers 200 — the whole reason the
+promote gate was redesigned in PHASE-157.
+</li>
+<li><code>env</code> is <code>process.env.VERCEL_ENV ?? &#39;development&#39;</code> — so a local run reports
+<code>development</code>, not <code>local</code>.
+</li>
+</ul>
+</main>
+<footer class="site-foot">
+<p>Generated from the repository by <code>tools/api-docs/build.ts</code>.</p>
+</footer>
+</body>
+</html>
